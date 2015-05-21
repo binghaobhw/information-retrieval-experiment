@@ -5,8 +5,6 @@ from flask import render_template, request
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """Return index.html
-    """
     if request.method == 'POST':
         keyword = request.form['keyword']
         if keyword:

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'masashi'
 
 from config import MONGO_URL
 from pymongo import MongoClient

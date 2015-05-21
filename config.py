@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = 'masashi'
-
 import os
 
 # application settings
-MONGO_URL = 'MONGO_URL'
+MONGO_URL = 'mongodb://localhost:27017/local'
+CWS_MODEL_PATH = '/downloads/cws.model'
 
 # Generate a random secret key
 SECRET_KEY = os.urandom(24)

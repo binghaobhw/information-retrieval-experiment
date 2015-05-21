@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html>
-<head lang="ja">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <title>Pythonで作る検索エンジン</title>
+    <title>Python站内搜索引擎</title>
 </head>
 <body>
 
     <div class="container">
-        <h1>Pythonで作る検索エンジン</h1>
+        <h1>Python站内搜索引擎</h1>
 
         <form method="post" action="{{url_for('index')}}">
             <div class="row">
                 <div class="col-xs-10">
-                    <input type="text" class="form-control" name="keyword" placeholder="キーワードを入力して下さい.">
+                    <input type="text" class="form-control" name="keyword" placeholder="输入关键字">
                 </div>
                 <div class="col-xs-2">
-                    <input type="submit" class="btn btn-md btn-block btn-primary" value="検索">
+                    <input type="submit" class="btn btn-md btn-block btn-primary" value="搜索">
                 </div>
             </div>
         </form>
@@ -25,16 +25,16 @@
         <br>
 
         {% if keyword %}
-        <h3>「{{keyword}}」の検索結果...</h3>
+        <h3>「{{keyword}}」的搜索结果</h3>
         <ul>
             {% for url in query['url'] %}
             <li><a href="{{url}}">{{url}}</a></li>
             {% else %}
-            <p>そのキーワードを持つページはありませんでした．</p>
+            <p>未找到相关页面</p>
             {% endfor %}
         </ul>
         {% else %}
-        <p>キーワードを入れて検索ボタンを押して下さい.</p>
+        <p>请输入关键字</p>
         {% endif %}
     </div><!-- container -->
     <script src="//code.jquery.com/jquery.js"></script>

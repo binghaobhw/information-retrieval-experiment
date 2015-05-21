@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__author__ = 'masashi'
 
 from web_crawler import collection as col
 

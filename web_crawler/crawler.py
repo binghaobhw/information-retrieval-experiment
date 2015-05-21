@@ -1,36 +1,40 @@
 # -*- coding: utf-8 -*-
+import re
 
 from web_crawler import collection as col
-import urllib2
-import MeCab
+import requests
+from ltp import segment
+from bs4 import BeautifulSoup, Comment
+
+
+HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'en,zh-CN;q=0.8,zh;q=0.6,zh-TW;q=0.4',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'Referer': 'https://www.google.com.hk/',
+    'User-agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.146 Safari/537.36'}
+browser = requests.Session()
 
 
 def split_to_word(text):
-    """
-    MeCabを使って日本語を形態素解析
-    単語に切り分け、リストをつくる
-    """
-    words = []
-    m = MeCab.Tagger("-Ochasen")
-    text = unicode(text, "utf-8")
-    text = text.encode("utf-8")
-    node = m.parseToNode(text)
-    while node:
-        words.append(node.surface)
-        node = node.next
-    return words
+    return segment(text)
 
 
 def get_page(url):
     try:
-        return urllib2.urlopen(url).read()
+        response = browser.get(url, timeout=5, headers=HEADERS)
+        if response.status_code == requests.codes.ok:
+            return BeautifulSoup(response.text)
+        else:
+            return BeautifulSoup()
     except:
-        return ""
+        return BeautifulSoup()
 
 
 def union(a, b):
     """
-    リストを結合．重複していれば追加しない
 
     >>> a, b = ['a', 'b', 'c'], ['b', 'c', 'd']
     >>> union(a,b)
@@ -44,7 +48,6 @@ def union(a, b):
 
 def get_next_target(page):
     """
-    文字列に変換したWeb文書からURLリンクを抽出
 
     >>> ('link1', 16) == get_next_target('aa<a href="link1">link</a>bbcc')
     True
@@ -60,21 +63,11 @@ def get_next_target(page):
     return url, end_quote
 
 
-def get_all_links(page):
-    """
-    文字列に変換したWeb文書内のURLリンクを全て抽出してリストに格納．
-
-    >>> ['link1', 'link2'] == get_all_links('aa<a href="link1">link1</a>bb<a href="link2">link2</a>cc')
-    True
-    """
+def get_all_links(soup):
     links = []
-    while True:
-        url, end_pos = get_next_target(page)
-        if url:
-            links.append(url)
-            page = page[end_pos:]
-        else:
-            break
+    for a in soup.find_all('a'):
+        if a.has_attr('href'):
+            links.append(a.get('href'))
     return links
 
 
@@ -89,9 +82,27 @@ def add_to_index(keyword, url):
     col.insert({'keyword': keyword, 'url': [url]})
 
 
-def add_page_to_index(url, content):
-    for word in split_to_word(content):
-        add_to_index(word, url)
+def add_page_to_index(url, text_list):
+    for text in text_list:
+        for word in split_to_word(text):
+            add_to_index(word, url)
+
+
+def visible(element):
+    if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+        return False
+    elif isinstance(element, Comment):
+        return False
+    elif re.match('\n', unicode(element)):
+        return False
+    else:
+        return True
+
+
+def get_visible_text_list(soup):
+    elements = soup.find_all(text=True)
+    visible_elements = filter(visible, elements)
+    return map(unicode, visible_elements)
 
 
 def crawl_web(seed, max_depth):
@@ -102,9 +113,10 @@ def crawl_web(seed, max_depth):
     while to_crawl and depth <= max_depth:
         page = to_crawl.pop(0)
         if page not in crawled:
-            content = get_page(page)
-            add_page_to_index(page, content)
-            union(to_crawl, get_all_links(content))
+            soup = get_page(page)
+            visible_text_list = get_visible_text_list(soup)
+            add_page_to_index(page, visible_text_list)
+            union(to_crawl, get_all_links(soup))
             crawled.append(page)
         if not to_crawl:
             to_crawl, next_depth = next_depth, []
