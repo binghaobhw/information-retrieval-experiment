@@ -2,6 +2,7 @@
 
 ## Description
 
+- Base on [MASASHI Shibata's project](https://github.com/c-bata/SearchEngine)
 - Web Crawler
 - Use [pyltp](https://github.com/HIT-SCIR/pyltp) to segment Chinese word
 - MongoDB as storage
